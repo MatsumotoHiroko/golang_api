@@ -1,0 +1,30 @@
+version: '3.5'
+services:
+
+    # Application container
+    go:
+        image: golang:1.8-alpine
+        ports:
+            - "80:8080"
+        links:
+            - mongodb
+        build: .
+        environment:
+            DEBUG: 'true'
+            SIGNINGKEY: 'testsigningkey'
+        volumes:
+            - ".:/go/src/github.com/MatsumotoHiroko/golang_api"
+        command: go run app.go
+        depends_on: ["mongodb"]
+  
+    mongodb:
+        image: mongo
+        ports:
+            - "27017:27017"
+        healthcheck:
+            test: echo 'db.runCommand("ping").ok' | mongo mongo:27017/test --quiet 1
+            interval: 10s
+            timeout: 10s
+            retries: 5
+            start_period: 40s
+        command: mongod --smallfiles
